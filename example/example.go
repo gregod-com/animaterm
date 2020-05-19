@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/common-nighthawk/go-figure"
-	ui "github.com/gregorpirolt/animaterm"
+	ui "github.com/gregod-com/animaterm"
 )
 
 func main() {
