@@ -1,7 +1,10 @@
 package animaterm
 
-import "sync"
+import (
+	"sync"
+)
 
+// COPIED TO gregod-com/interfaces
 // IUserInterface ...
 type IUserInterface interface {
 	SetBoarderLeft(percent int) error
