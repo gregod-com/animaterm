@@ -27,7 +27,7 @@ type UserInterface struct {
 func CreateUI() IUserInterface {
 	minWidth := 130
 	minHeight := 33
-	time.Sleep(time.Duration(100) * time.Millisecond)
+	// time.Sleep(time.Duration(100) * time.Millisecond)
 	if Width() < minWidth || Height() < minHeight {
 		fr := &UserInterface{}
 		fr.ClearScreen()
@@ -36,7 +36,7 @@ func CreateUI() IUserInterface {
 		pf("Your current resolution is %v columns X %v rows X\n", Color(strconv.Itoa(Width()), COLORPATTERNLIME), Color(strconv.Itoa(Height()), COLORPATTERNLIME))
 		pl("In- or decrease your terminal's zoom to fit the canvas onto your screen.")
 		pl("For optimal content presentation set your terminal into fullscreen mode.")
-		os.Exit(0)
+		// os.Exit(0)
 	}
 	ui := &UserInterface{
 		absBorderLeft:   0,
