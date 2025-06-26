@@ -6,8 +6,8 @@ import (
 
 func TestCreatePos(t *testing.T) {
 	tests := []struct {
-		name     string
-		x, y     int
+		name                 string
+		x, y                 int
 		expectedX, expectedY int
 	}{
 		{"Valid coordinates", 50, 75, 50, 75},
@@ -31,10 +31,10 @@ func TestCreatePos(t *testing.T) {
 
 func TestPositionSetX(t *testing.T) {
 	pos := CreatePos(0, 0)
-	
+
 	tests := []struct {
-		name string
-		x    int
+		name     string
+		x        int
 		expected int
 	}{
 		{"Valid positive", 50, 50},
@@ -60,9 +60,9 @@ func TestPositionSetX(t *testing.T) {
 func TestPositionDistance(t *testing.T) {
 	pos1 := CreatePos(10, 20)
 	pos2 := CreatePos(30, 50)
-	
+
 	distance := pos1.DistanceTo(pos2)
-	
+
 	if distance.GetX() != 20 {
 		t.Errorf("Distance X = %d, want 20", distance.GetX())
 	}
@@ -74,9 +74,9 @@ func TestPositionDistance(t *testing.T) {
 func TestPositionAddDistance(t *testing.T) {
 	pos1 := CreatePos(10, 20)
 	pos2 := CreatePos(5, 15)
-	
+
 	result := pos1.AddDistance(pos2)
-	
+
 	if result.GetX() != 15 {
 		t.Errorf("AddDistance X = %d, want 15", result.GetX())
 	}
@@ -87,9 +87,9 @@ func TestPositionAddDistance(t *testing.T) {
 
 func TestPositionMultiplyWith(t *testing.T) {
 	pos := CreatePos(10, 20)
-	
+
 	result := pos.MultiplyWith(2.5)
-	
+
 	if result.GetX() != 25 {
 		t.Errorf("MultiplyWith(2.5) X = %d, want 25", result.GetX())
 	}
@@ -100,24 +100,24 @@ func TestPositionMultiplyWith(t *testing.T) {
 
 func TestPositionOffset(t *testing.T) {
 	pos := CreatePos(10, 20)
-	
+
 	// Test initial offset
 	if pos.GetOffset() != 0 {
 		t.Errorf("Initial offset = %d, want 0", pos.GetOffset())
 	}
-	
+
 	// Test increment
 	pos.IncrementOffset()
 	if pos.GetOffset() != 1 {
 		t.Errorf("After increment offset = %d, want 1", pos.GetOffset())
 	}
-	
+
 	// Test set offset
 	pos.SetOffset(5)
 	if pos.GetOffset() != 5 {
 		t.Errorf("After SetOffset(5) offset = %d, want 5", pos.GetOffset())
 	}
-	
+
 	// Test reset
 	pos.ResetOffset()
 	if pos.GetOffset() != 0 {

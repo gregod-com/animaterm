@@ -12,15 +12,19 @@ import (
 func main() {
 
 	myUI := ui.CreateUI()
-	myUI.ClearScreen()
-	myUI.SetBorder(0)
+	if err := myUI.ClearScreen(); err != nil {
+		panic(err)
+	}
+	if err := myUI.SetBorder(0); err != nil {
+		panic(err)
+	}
 
 	var duration int64 = 800
 
 	ch, wg := myUI.StartDrawLoop(70)
 	iamASCII := figure.NewFigure("Staging", "standard", true)
 
-	myUI.MoveElement(
+	if err := myUI.MoveElement(
 		ui.CreatePos(70, 15),
 		ui.CreatePos(35, 15),
 		iamASCII.String(),
@@ -28,7 +32,9 @@ func main() {
 		ui.Animation{
 			AnimationType: ui.Ikea,
 			Duration:      2400,
-		})
+		}); err != nil {
+		panic(err)
+	}
 
 	close(ch)
 	wg.Wait()
@@ -149,14 +155,18 @@ func main() {
 
 	// ascii font going from center to left
 	myCLI := figure.NewFigure("animaterm", "standard", true)
-	go myUI.MoveElement(ui.CreatePos(40, 5), ui.CreatePos(0, 5), myCLI.String(), ui.COLORPATTERNLIME,
-		ui.Animation{
-			Duration:      duration,
-			AnimationType: ui.Ikea,
-			GradientV:     true,
-			GradientH:     true,
-			Direction:     ui.Right,
-		})
+	go func() {
+		if err := myUI.MoveElement(ui.CreatePos(40, 5), ui.CreatePos(0, 5), myCLI.String(), ui.COLORPATTERNLIME,
+			ui.Animation{
+				Duration:      duration,
+				AnimationType: ui.Ikea,
+				GradientV:     true,
+				GradientH:     true,
+				Direction:     ui.Right,
+			}); err != nil {
+			panic(err)
+		}
+	}()
 
 	myUI.DrawPattern(ui.CreatePos(50, 5), 50, "█\n█\n█\n█\n█\n", ui.COLORPATTERNPASTEL,
 		ui.Animation{
@@ -168,24 +178,30 @@ func main() {
 		})
 
 	animation := figure.NewFigure("a go animation", "standard", true)
-	go myUI.MoveElement(ui.CreatePos(27, 65), ui.CreatePos(14, 65), animation.String(), ui.COLORPATTERNLIME,
-		ui.Animation{
-			Duration:      800,
-			AnimationType: ui.Ikea,
-			GradientV:     true,
-			GradientH:     true,
-			Direction:     ui.Right,
-		})
+	go func() {
+		if err := myUI.MoveElement(ui.CreatePos(27, 65), ui.CreatePos(14, 65), animation.String(), ui.COLORPATTERNLIME,
+			ui.Animation{
+				Duration:      800,
+				AnimationType: ui.Ikea,
+				GradientV:     true,
+				GradientH:     true,
+				Direction:     ui.Right,
+			}); err != nil {
+			panic(err)
+		}
+	}()
 
 	framework := figure.NewFigure("framework", "standard", true)
-	myUI.MoveElement(ui.CreatePos(15, 80), ui.CreatePos(40, 80), framework.String(), ui.COLORPATTERNGREY,
+	if err := myUI.MoveElement(ui.CreatePos(15, 80), ui.CreatePos(40, 80), framework.String(), ui.COLORPATTERNGREY,
 		ui.Animation{
 			Duration:      1600,
 			AnimationType: ui.Ikea,
 			GradientV:     true,
 			GradientH:     true,
 			Direction:     ui.Right,
-		})
+		}); err != nil {
+		panic(err)
+	}
 
 	close(ch)
 	wg.Wait()

@@ -24,7 +24,6 @@ type UserInterface struct {
 	dirtyMutex      sync.RWMutex
 	height          int
 	width           int
-	lastBuffer      string
 	msPerFrame      int64
 	frameMutex      sync.RWMutex
 }
@@ -39,7 +38,7 @@ func CreateUI() IUserInterface {
 	// time.Sleep(time.Duration(100) * time.Millisecond)
 	if Width() < minWidth || Height() < minHeight {
 		fr := &UserInterface{}
-		fr.ClearScreen()
+		_ = fr.ClearScreen()
 		pl("You should use the UI in a terminal with a resolution bigger than:")
 		pf("%v columns X %v rows\n", minWidth, minHeight)
 		pf("Your current resolution is %v columns X %v rows X\n", Color(strconv.Itoa(Width()), COLORPATTERNLIME), Color(strconv.Itoa(Height()), COLORPATTERNLIME))
@@ -54,18 +53,17 @@ func CreateUI() IUserInterface {
 		absBorderBottom: 0,
 		msPerFrame:      320,
 	}
-	ui.initPixels(Height(), Width())
+	_ = ui.initPixels(Height(), Width())
 
 	return ui
 }
-
 
 func (ui *UserInterface) initPixels(height int, width int) error {
 	ui.pixelsMutex.Lock()
 	ui.dirtyMutex.Lock()
 	defer ui.pixelsMutex.Unlock()
 	defer ui.dirtyMutex.Unlock()
-	
+
 	ui.height = height
 	ui.width = width
 	// init pixels
@@ -99,8 +97,8 @@ func (ui *UserInterface) StartDrawLoop(percentHeight int) (chan int, *sync.WaitG
 
 // Draw ...
 func (ui *UserInterface) drawLoop(height int, width int, ch chan int, wg *sync.WaitGroup) {
-	start := time.Now()
-	took := time.Duration(5)
+	_ = time.Now()
+	_ = time.Duration(5)
 	lineBuffer := ""
 	screenBuffer := "" // make([]string, height)
 	for {
@@ -112,7 +110,7 @@ func (ui *UserInterface) drawLoop(height int, width int, ch chan int, wg *sync.W
 				return
 			}
 		default:
-			start = time.Now()
+			_ = time.Now()
 
 			// Check if any regions are dirty before rebuilding buffer
 			ui.dirtyMutex.RLock()
@@ -125,7 +123,7 @@ func (ui *UserInterface) drawLoop(height int, width int, ch chan int, wg *sync.W
 				}
 			}
 			ui.dirtyMutex.RUnlock()
-			
+
 			if hasDirty {
 				oldbuff := screenBuffer
 				screenBuffer = ""
@@ -144,14 +142,14 @@ func (ui *UserInterface) drawLoop(height int, width int, ch chan int, wg *sync.W
 					lineBuffer = ""
 				}
 				ui.pixelsMutex.RUnlock()
-				
+
 				if oldbuff != screenBuffer {
-					ui.moveCursorTo(0, 0)
+					_ = ui.moveCursorTo(0, 0)
 					ui.frameMutex.Lock()
 					ui.msPerFrame = 30
 					ui.frameMutex.Unlock()
 					pl(screenBuffer)
-					ui.moveCursorTo(0, lastContentRow)
+					_ = ui.moveCursorTo(0, lastContentRow)
 					ui.clearDirtyRegions()
 				}
 			} else {
@@ -160,11 +158,11 @@ func (ui *UserInterface) drawLoop(height int, width int, ch chan int, wg *sync.W
 				ui.msPerFrame = 320
 				ui.frameMutex.Unlock()
 			}
-			took = time.Since(start)
+			_ = time.Since(time.Now())
 			ui.frameMutex.RLock()
 			frameRate := ui.msPerFrame
 			ui.frameMutex.RUnlock()
-			time.Sleep(time.Duration(frameRate)*time.Millisecond - took)
+			time.Sleep(time.Duration(frameRate) * time.Millisecond)
 		}
 	}
 }
@@ -217,8 +215,8 @@ func (ui *UserInterface) SetBorderBottom(percent int) error {
 // Set a global border on left and right side of screen that forces
 // all elements to be printed outside it's boundaries
 func (ui *UserInterface) SetBorderSides(percent int) error {
-	ui.SetBorderLeft(percent)
-	ui.SetBorderRight(percent)
+	_ = ui.SetBorderLeft(percent)
+	_ = ui.SetBorderRight(percent)
 	return nil
 }
 
@@ -226,8 +224,8 @@ func (ui *UserInterface) SetBorderSides(percent int) error {
 // Set a global border on left and right side of screen that forces
 // all elements to be printed outside it's boundaries
 func (ui *UserInterface) SetBorderTopBottom(percent int) error {
-	ui.SetBorderTop(percent)
-	ui.SetBorderBottom(percent)
+	_ = ui.SetBorderTop(percent)
+	_ = ui.SetBorderBottom(percent)
 	return nil
 }
 
@@ -235,8 +233,8 @@ func (ui *UserInterface) SetBorderTopBottom(percent int) error {
 // Set a global border on left and right side of screen that forces
 // all elements to be printed outside it's boundaries
 func (ui *UserInterface) SetBorder(percent int) error {
-	ui.SetBorderSides(percent)
-	ui.SetBorderTopBottom(percent)
+	_ = ui.SetBorderSides(percent)
+	_ = ui.SetBorderTopBottom(percent)
 	return nil
 }
 
@@ -409,18 +407,18 @@ func (ui *UserInterface) DrawPattern(startPos IRelativePosition, expansion int, 
 
 	if animation.Duration > 0 {
 		ui.frameMutex.RLock()
-	frameRate := ui.msPerFrame
-	ui.frameMutex.RUnlock()
-	frames := int(animation.Duration / frameRate)
+		frameRate := ui.msPerFrame
+		ui.frameMutex.RUnlock()
+		frames := int(animation.Duration / frameRate)
 		// animation
 		for i := 0; i <= frames; i++ {
 			factor := getAnimation(animation.AnimationType)(CB.Time(0), CB.Time(frames), CB.Time(i))
 			currentExpansionPercent := int(float32(expansion)*factor + 0.5)
 			switchDir(currentExpansionPercent)
 			ui.frameMutex.RLock()
-		frameRate := ui.msPerFrame
-		ui.frameMutex.RUnlock()
-		time.Sleep(time.Duration(frameRate) * time.Millisecond)
+			frameRate := ui.msPerFrame
+			ui.frameMutex.RUnlock()
+			time.Sleep(time.Duration(frameRate) * time.Millisecond)
 		}
 	} else {
 		switchDir(expansion)
@@ -432,10 +430,6 @@ func (ui *UserInterface) DrawPattern(startPos IRelativePosition, expansion int, 
 
 	// time.Sleep(time.Duration(msPerFrame) * time.Millisecond)
 	return y - 1
-}
-
-func replaceCharAt(str string, replace string, index int) string {
-	return str[:index] + replace + str[index+1:]
 }
 
 func getLines(multilineText string, replaceWithBlanks bool) []string {
@@ -491,10 +485,10 @@ func (ui *UserInterface) PercentToAbsoluteYPostion(percent int) int {
 
 // ClearScreen ...
 func (ui *UserInterface) ClearScreen() error {
-	ui.initPixels(Height(), Width())
+	_ = ui.initPixels(Height(), Width())
 	cmd := exec.Command("clear", "cmd", "/c", "cls")
 	cmd.Stdout = os.Stdout
-	cmd.Run()
+	_ = cmd.Run()
 	return nil
 }
 
@@ -504,7 +498,7 @@ func (ui *UserInterface) setPixel(x, y int, value string) {
 	ui.dirtyMutex.Lock()
 	defer ui.pixelsMutex.Unlock()
 	defer ui.dirtyMutex.Unlock()
-	
+
 	if y >= 0 && y < len(ui.pixels) && x >= 0 && x < len(ui.pixels[y]) {
 		if ui.pixels[y][x] != value {
 			ui.pixels[y][x] = value
@@ -517,7 +511,7 @@ func (ui *UserInterface) setPixel(x, y int, value string) {
 func (ui *UserInterface) clearDirtyRegions() {
 	ui.dirtyMutex.Lock()
 	defer ui.dirtyMutex.Unlock()
-	
+
 	for h := 0; h < ui.height; h++ {
 		for w := 0; w < ui.width; w++ {
 			ui.dirtyRegions[h][w] = false

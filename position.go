@@ -14,7 +14,7 @@ type Position struct {
 // The position starts with zero offset for multi-line rendering.
 func CreatePos(x int, y int) IRelativePosition {
 	pos := &Position{offset: 0}
-	pos.SetXandY(x, y)
+	_ = pos.SetXandY(x, y)
 	return pos
 }
 
@@ -59,8 +59,8 @@ func (p *Position) SetY(percenty int) error {
 
 // SetXandY see IRelativePosition
 func (p *Position) SetXandY(percentx int, percenty int) error {
-	p.SetX(percentx)
-	p.SetY(percenty)
+	_ = p.SetX(percentx)
+	_ = p.SetY(percenty)
 	return nil
 }
 

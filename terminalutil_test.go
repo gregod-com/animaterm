@@ -91,7 +91,7 @@ func TestRandomColors(t *testing.T) {
 	if len(randomGreySeq) == 0 {
 		t.Error("RANDOMGREY should return non-empty sequence")
 	}
-	
+
 	randomSeq := getControlSequence(RANDOM)
 	if len(randomSeq) == 0 {
 		t.Error("RANDOM should return non-empty sequence")
@@ -101,21 +101,21 @@ func TestRandomColors(t *testing.T) {
 func TestHeightWidth(t *testing.T) {
 	height := Height()
 	width := Width()
-	
+
 	// Should return reasonable defaults even if terminal detection fails
 	if height < 1 {
 		t.Errorf("Height() = %d, should be positive", height)
 	}
-	
+
 	if width < 1 {
 		t.Errorf("Width() = %d, should be positive", width)
 	}
-	
+
 	// Should be reasonable terminal sizes
 	if height > 1000 {
 		t.Errorf("Height() = %d, seems unreasonably large", height)
 	}
-	
+
 	if width > 1000 {
 		t.Errorf("Width() = %d, seems unreasonably large", width)
 	}
@@ -124,7 +124,7 @@ func TestHeightWidth(t *testing.T) {
 func TestAnimationTypes(t *testing.T) {
 	// Test that all animation types return valid functions
 	animationTypes := []AnimationType{EaseIn, EaseOut, EaseInOut, Custom, Ikea}
-	
+
 	for _, animType := range animationTypes {
 		t.Run(animType.String(), func(t *testing.T) {
 			animFunc := getAnimation(animType)

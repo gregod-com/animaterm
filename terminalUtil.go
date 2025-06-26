@@ -28,7 +28,7 @@ type Animation struct {
 // Direction ...
 type Direction int
 
-//  Up ...
+// Up ...
 const (
 	Right Direction = iota
 	Left
@@ -71,44 +71,44 @@ type ControlSequence int
 // List of control sequeces colors
 const (
 	BLACK                       int = 0
-	RED                             = 1
-	GREEN                           = 2
-	YELLOW                          = 3
-	BLUE                            = 4
-	VIOLET                          = 5
-	WHITE                           = 7
-	GREY                            = 231
-	LIGHTGREY                       = 234
-	DARKBLUE                        = 17
-	TERMINALGREEN                   = 112
-	ORANGE                          = 202
-	RED2                            = 160
-	PINK                            = 177
-	COLORPATTERNPASTEL              = 34
-	COLORPATTERNSKYLIGHT            = 39
-	COLORPATTERNMEADOWS1            = 40
-	COLORPATTERNMEADOWS2            = 46
-	COLORPATTERNNEON1               = 64
-	COLORPATTERNNEON2               = 70
-	COLORPATTERNNEON3               = 76
-	COLORPATTERNGREENFOUNDATION     = 77
-	COLORPATTERNLIME                = 82
-	COLORPATTERNGREY                = 106
-	COLORPATTERNSPLITMEADOWS        = 42
-	COLORPATTERNBABYSTEPS1          = 74
-	COLORPATTERNBABYSTEPS2          = 81
-	COLORPATTERNGOINGGREY1          = 100
-	COLORPATTERNGOINGGREY2          = 101
-	COLORPATTERNGOINGGREY3          = 102
-	COLORPATTERNGOINGGREY4          = 103
-	COLORPATTERNGOINGGREY5          = 104
-	COLORPATTERNGOINGGREY6          = 105
-	RESET                           = 500
-	RESETLINE                       = 501
-	RANDOMGREY                      = 502
-	RANDOM                          = 503
-	BLANK                           = 504
-	ALREADYCOLORED                  = 505
+	RED                         int = 1
+	GREEN                       int = 2
+	YELLOW                      int = 3
+	BLUE                        int = 4
+	VIOLET                      int = 5
+	WHITE                       int = 7
+	GREY                        int = 231
+	LIGHTGREY                   int = 234
+	DARKBLUE                    int = 17
+	TERMINALGREEN               int = 112
+	ORANGE                      int = 202
+	RED2                        int = 160
+	PINK                        int = 177
+	COLORPATTERNPASTEL          int = 34
+	COLORPATTERNSKYLIGHT        int = 39
+	COLORPATTERNMEADOWS1        int = 40
+	COLORPATTERNMEADOWS2        int = 46
+	COLORPATTERNNEON1           int = 64
+	COLORPATTERNNEON2           int = 70
+	COLORPATTERNNEON3           int = 76
+	COLORPATTERNGREENFOUNDATION int = 77
+	COLORPATTERNLIME            int = 82
+	COLORPATTERNGREY            int = 106
+	COLORPATTERNSPLITMEADOWS    int = 42
+	COLORPATTERNBABYSTEPS1      int = 74
+	COLORPATTERNBABYSTEPS2      int = 81
+	COLORPATTERNGOINGGREY1      int = 100
+	COLORPATTERNGOINGGREY2      int = 101
+	COLORPATTERNGOINGGREY3      int = 102
+	COLORPATTERNGOINGGREY4      int = 103
+	COLORPATTERNGOINGGREY5      int = 104
+	COLORPATTERNGOINGGREY6      int = 105
+	RESET                       int = 500
+	RESETLINE                   int = 501
+	RANDOMGREY                  int = 502
+	RANDOM                      int = 503
+	BLANK                       int = 504
+	ALREADYCOLORED              int = 505
 )
 
 func getControlSequence(sequence int) string {
