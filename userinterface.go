@@ -519,6 +519,6 @@ func (ui *UserInterface) clearDirtyRegions() {
 }
 
 func (ui *UserInterface) moveCursorTo(absX int, absY int) error {
-	p("\033[" + strconv.Itoa(absY) + ";" + strconv.Itoa(absX) + "H")
+	_, _ = p("\033[" + strconv.Itoa(absY) + ";" + strconv.Itoa(absX) + "H")
 	return nil
 }
