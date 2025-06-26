@@ -88,7 +88,7 @@ func (ui *UserInterface) StartDrawLoop(percentHeight int) (chan int, *sync.WaitG
 	var wg sync.WaitGroup
 	wg.Add(1)
 	ch := make(chan int)
-	p("\033[?25l")
+	_, _ = p("\033[?25l")
 
 	go ui.drawLoop(Height()*percentHeight/100, Width(), ch, &wg)
 
@@ -106,7 +106,7 @@ func (ui *UserInterface) drawLoop(height int, width int, ch chan int, wg *sync.W
 		case _, ok := <-ch:
 			if !ok {
 				wg.Done()
-				p("\033[?25h")
+				_, _ = p("\033[?25h")
 				return
 			}
 		default:
@@ -148,7 +148,7 @@ func (ui *UserInterface) drawLoop(height int, width int, ch chan int, wg *sync.W
 					ui.frameMutex.Lock()
 					ui.msPerFrame = 30
 					ui.frameMutex.Unlock()
-					pl(screenBuffer)
+					_, _ = pl(screenBuffer)
 					_ = ui.moveCursorTo(0, lastContentRow)
 					ui.clearDirtyRegions()
 				}
