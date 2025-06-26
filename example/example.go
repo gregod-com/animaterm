@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"strconv"
 	"time"
 
@@ -39,32 +38,30 @@ func main() {
 	close(ch)
 	wg.Wait()
 	time.Sleep(time.Duration(500) * time.Millisecond)
-	os.Exit(0)
-	// for i := 10; i <= 100; i += 10 {
-	// 	go myUI.DrawPattern(ui.CreatePos(0, i-10), i, "█\n█\n", ui.COLORPATTERNNEON1,
-	// 		ui.Animation{
-	// 			Duration:      int64(i) * 10,
-	// 			AnimationType: ui.Ikea,
-	// 			GradientV:     true,
-	// 			GradientH:     true,
-	// 			Direction:     ui.Right,
-	// 		})
-	// 	myUI.DrawPattern(ui.CreatePos(100, i-8), i, "█\n█\n", ui.COLORPATTERNNEON1,
-	// 		ui.Animation{
-	// 			Duration:      int64(i) * 10,
-	// 			AnimationType: ui.Ikea,
-	// 			GradientV:     true,
-	// 			GradientH:     true,
-	// 			Direction:     ui.Left,
-	// 		})
-	// 	myUI.DrawElement(ui.CreatePos(50, i-6), strconv.Itoa(i), ui.COLORPATTERNNEON1)
-	// 	time.Sleep(time.Duration(100) * time.Millisecond)
-	// }
-	// close(ch)
-	// wg.Wait()
-	// os.Exit(0)
+	for i := 10; i <= 100; i += 10 {
+		go myUI.DrawPattern(ui.CreatePos(0, i-10), i, "█\n█\n", ui.COLORPATTERNNEON1,
+			ui.Animation{
+				Duration:      int64(i) * 10,
+				AnimationType: ui.Ikea,
+				GradientV:     true,
+				GradientH:     true,
+				Direction:     ui.Right,
+			})
+		myUI.DrawPattern(ui.CreatePos(100, i-8), i, "█\n█\n", ui.COLORPATTERNNEON1,
+			ui.Animation{
+				Duration:      int64(i) * 10,
+				AnimationType: ui.Ikea,
+				GradientV:     true,
+				GradientH:     true,
+				Direction:     ui.Left,
+			})
+		myUI.DrawElement(ui.CreatePos(50, i-6), strconv.Itoa(i), ui.COLORPATTERNNEON1)
+		time.Sleep(time.Duration(100) * time.Millisecond)
+	}
+	close(ch)
+	wg.Wait()
 
-	// myUI.ClearScreen()
+	myUI.ClearScreen()
 
 	for i := 10; i <= 100; i += 10 {
 		go myUI.DrawPattern(ui.CreatePos(i-10, 0), 50, "█", ui.COLORPATTERNNEON1,
@@ -89,25 +86,25 @@ func main() {
 	}
 	time.Sleep(time.Duration(1000) * time.Millisecond)
 
-	// // left vertical column
-	// go myUI.DrawPattern(ui.CreatePos(10, 10), 80, "|\n|\n|\n", ui.COLORPATTERNNEON1,
-	// 	ui.Animation{
-	// 		Duration:      0,
-	// 		AnimationType: ui.Ikea,
-	// 		GradientV:     true,
-	// 		GradientH:     true,
-	// 		Direction:     ui.Down,
-	// 	})
+	// left vertical column
+	go myUI.DrawPattern(ui.CreatePos(10, 10), 80, "|\n|\n|\n", ui.COLORPATTERNNEON1,
+		ui.Animation{
+			Duration:      0,
+			AnimationType: ui.Ikea,
+			GradientV:     true,
+			GradientH:     true,
+			Direction:     ui.Down,
+		})
 
-	// // right vertical column
-	// myUI.DrawPattern(ui.CreatePos(80, 90), 80, "|\n|\n|\n", ui.COLORPATTERNNEON1,
-	// 	ui.Animation{
-	// 		Duration:      1800,
-	// 		AnimationType: ui.Ikea,
-	// 		GradientV:     true,
-	// 		GradientH:     true,
-	// 		Direction:     ui.Up,
-	// 	})
+	// right vertical column
+	myUI.DrawPattern(ui.CreatePos(80, 90), 80, "|\n|\n|\n", ui.COLORPATTERNNEON1,
+		ui.Animation{
+			Duration:      1800,
+			AnimationType: ui.Ikea,
+			GradientV:     true,
+			GradientH:     true,
+			Direction:     ui.Up,
+		})
 
 	// top bar going left to right
 	go myUI.DrawPattern(ui.CreatePos(0, 10), 100, "█\n█\n", ui.COLORPATTERNNEON1,

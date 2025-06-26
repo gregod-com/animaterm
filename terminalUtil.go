@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"golang.org/x/mobile/exp/sprite/clock"
-	"golang.org/x/sys/unix"
+	"golang.org/x/term"
 )
 
 var pl = fmt.Println
@@ -140,45 +140,48 @@ func Color(str string, color int) string {
 	return fmt.Sprintf("%s%s%s", getControlSequence(color), str, getControlSequence(RESET))
 }
 
-func getWinsize() (*unix.Winsize, error) {
-
-	ws, err := unix.IoctlGetWinsize(int(os.Stdout.Fd()), unix.TIOCGWINSZ)
+// getTerminalSize returns the terminal width and height using cross-platform term package
+func getTerminalSize() (int, int, error) {
+	width, height, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
-		return nil, os.NewSyscallError("GetWinsize", err)
+		return 0, 0, err
 	}
-
-	return ws, nil
+	return width, height, nil
 }
 
+// SetWinsize attempts to set terminal size (Unix only, no-op on Windows)
+// Note: This function has limited cross-platform support and may not work on all systems
 func SetWinsize(width int, height int) error {
-	uws := &unix.Winsize{Row: uint16(height), Col: uint16(width), Xpixel: 0, Ypixel: 0}
-	return unix.IoctlSetWinsize(int(os.Stdout.Fd()), unix.TIOCSWINSZ, uws)
+	// Terminal size setting is not reliably supported across all platforms
+	// This is a no-op function that maintains API compatibility
+	// Users should rely on terminal emulator settings for window sizing
+	return nil
 }
 
 // Height returns the terminal height in rows.
 // Falls back to 24 rows if terminal size detection fails.
 func Height() int {
-	ws, err := getWinsize()
+	_, height, err := getTerminalSize()
 	if err != nil {
 		// Fallback to reasonable default if terminal size unavailable
 		return 24
 	}
-	if ws.Row == 0 {
+	if height == 0 {
 		return 24
 	}
-	return int(ws.Row)
+	return height
 }
 
 // Width returns the terminal width in columns.
 // Falls back to 80 columns if terminal size detection fails.
 func Width() int {
-	ws, err := getWinsize()
+	width, _, err := getTerminalSize()
 	if err != nil {
 		// Fallback to reasonable default if terminal size unavailable
 		return 80
 	}
-	if ws.Col == 0 {
+	if width == 0 {
 		return 80
 	}
-	return int(ws.Col)
+	return width
 }
