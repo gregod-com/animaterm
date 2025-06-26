@@ -1,9 +1,9 @@
 module github.com/gregod-com/animaterm
 
-go 1.14
+go 1.24
 
 require (
-	github.com/common-nighthawk/go-figure v0.0.0-20200609044655-c4b36f998cf2
-	golang.org/x/mobile v0.0.0-20200329125638-4c31acba0007
-	golang.org/x/sys v0.0.0-20190412213103-97732733099d
+	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
+	golang.org/x/mobile v0.0.0-20250606033058-a2a15c67f36f
+	golang.org/x/sys v0.33.0
 )
