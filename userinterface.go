@@ -39,11 +39,11 @@ func CreateUI() IUserInterface {
 	if Width() < minWidth || Height() < minHeight {
 		fr := &UserInterface{}
 		_ = fr.ClearScreen()
-		pl("You should use the UI in a terminal with a resolution bigger than:")
-		pf("%v columns X %v rows\n", minWidth, minHeight)
-		pf("Your current resolution is %v columns X %v rows X\n", Color(strconv.Itoa(Width()), COLORPATTERNLIME), Color(strconv.Itoa(Height()), COLORPATTERNLIME))
-		pl("In- or decrease your terminal's zoom to fit the canvas onto your screen.")
-		pl("For optimal content presentation set your terminal into fullscreen mode.")
+		_, _ = pl("You should use the UI in a terminal with a resolution bigger than:")
+		_, _ = pf("%v columns X %v rows\n", minWidth, minHeight)
+		_, _ = pf("Your current resolution is %v columns X %v rows X\n", Color(strconv.Itoa(Width()), COLORPATTERNLIME), Color(strconv.Itoa(Height()), COLORPATTERNLIME))
+		_, _ = pl("In- or decrease your terminal's zoom to fit the canvas onto your screen.")
+		_, _ = pl("For optimal content presentation set your terminal into fullscreen mode.")
 		// os.Exit(0)
 	}
 	ui := &UserInterface{
@@ -370,8 +370,7 @@ func (ui *UserInterface) DrawPattern(startPos IRelativePosition, expansion int, 
 
 	switchDir := func(expInPercent int) {
 		expAbs := 0
-		expDir1 := []int{0, 0}
-		expDir2 := []int{0, 0}
+		var expDir1, expDir2 []int
 
 		switch animation.Direction {
 		case 0:
