@@ -4,16 +4,17 @@ import (
 	"sync"
 )
 
-// COPIED TO gregod-com/interfaces
-// IUserInterface ...
+// IUserInterface provides the main interface for terminal-based animations and UI rendering.
+// It handles drawing elements, animations, and managing the terminal display buffer.
+// All coordinates use a percentage-based system (0-100) for both X and Y axes.
 type IUserInterface interface {
-	SetBoarderLeft(percent int) error
-	SetBoarderRight(percent int) error
-	SetBoarderTop(percent int) error
-	SetBoarderBottom(percent int) error
-	SetBoarderSides(percent int) error
-	SetBoarderTopBottom(percent int) error
-	SetBoarder(percent int) error
+	SetBorderLeft(percent int) error
+	SetBorderRight(percent int) error
+	SetBorderTop(percent int) error
+	SetBorderBottom(percent int) error
+	SetBorderSides(percent int) error
+	SetBorderTopBottom(percent int) error
+	SetBorder(percent int) error
 	// 	ClearScreen rest screen
 	ClearScreen() error
 	// StartDrawLoop initiates a loop, that renders the animations in a fixed loop
@@ -37,7 +38,9 @@ type IUserInterface interface {
 	PercentToAbsoluteYPostion(percent int) int
 }
 
-// IRelativePosition ...
+// IRelativePosition represents a 2D position using percentage coordinates (0-100).
+// It supports coordinate transformations, distance calculations, and offset management
+// for multi-line text rendering.
 type IRelativePosition interface {
 	// GetX returns x coodinate in percent
 	GetX() int

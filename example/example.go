@@ -13,7 +13,7 @@ func main() {
 
 	myUI := ui.CreateUI()
 	myUI.ClearScreen()
-	myUI.SetBoarder(0)
+	myUI.SetBorder(0)
 
 	var duration int64 = 800
 

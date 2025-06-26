@@ -14,7 +14,9 @@ var pl = fmt.Println
 var p = fmt.Print
 var pf = fmt.Printf
 
-// Animation ...
+// Animation defines the parameters for animated operations.
+// Duration is in milliseconds, Direction controls expansion/movement direction,
+// and gradient flags enable color transitions during animation.
 type Animation struct {
 	AnimationType AnimationType
 	Duration      int64
@@ -130,7 +132,8 @@ func getControlSequence(sequence int) string {
 	}
 }
 
-// Color apply
+// Color applies ANSI color codes to text for terminal display.
+// Supports 256-color mode, special effects, and handles blank/pre-colored text.
 func Color(str string, color int) string {
 	if color == BLANK || color == ALREADYCOLORED {
 		return str
@@ -153,20 +156,30 @@ func SetWinsize(width int, height int) error {
 	return unix.IoctlSetWinsize(int(os.Stdout.Fd()), unix.TIOCSWINSZ, uws)
 }
 
-// Height get full height of terminal window
+// Height returns the terminal height in rows.
+// Falls back to 24 rows if terminal size detection fails.
 func Height() int {
 	ws, err := getWinsize()
 	if err != nil {
-		return -1
+		// Fallback to reasonable default if terminal size unavailable
+		return 24
+	}
+	if ws.Row == 0 {
+		return 24
 	}
 	return int(ws.Row)
 }
 
-// Width get full width of terminal window
+// Width returns the terminal width in columns.
+// Falls back to 80 columns if terminal size detection fails.
 func Width() int {
 	ws, err := getWinsize()
 	if err != nil {
-		return -1
+		// Fallback to reasonable default if terminal size unavailable
+		return 80
+	}
+	if ws.Col == 0 {
+		return 80
 	}
 	return int(ws.Col)
 }

@@ -1,14 +1,17 @@
 package animaterm
 
-// Position 2D position
+// Position implements IRelativePosition using percentage-based coordinates.
+// All coordinates are automatically clamped to the range [-100, 100].
+// The offset field supports multi-line text rendering by tracking vertical displacement.
 type Position struct {
 	x      int
 	y      int
 	offset int
 }
 
-// CreatePos takes x and y coodinates in percent
-// and normalizes input to values between 0 and 100
+// CreatePos creates a new Position with the specified percentage coordinates.
+// Input values are automatically clamped to the range [-100, 100].
+// The position starts with zero offset for multi-line rendering.
 func CreatePos(x int, y int) IRelativePosition {
 	pos := &Position{offset: 0}
 	pos.SetXandY(x, y)

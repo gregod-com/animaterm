@@ -18,12 +18,21 @@ type UserInterface struct {
 	absBorderRight  int
 	absBorderTop    int
 	absBorderBottom int
+	pixels          [][]string
+	pixelsMutex     sync.RWMutex
+	dirtyRegions    [][]bool
+	dirtyMutex      sync.RWMutex
+	height          int
+	width           int
+	lastBuffer      string
+	msPerFrame      int64
+	frameMutex      sync.RWMutex
 }
 
-// CreateUI return an instance of UserInterface
-// There has to be a delay of 100ms at startup, since the docker environemt needs a few moments
-// to get the terminal width and hight from its host.
-// Todo: remove the sleep as soon as other boot-sequences take longer that 100ms anyways
+// CreateUI creates and initializes a new UserInterface instance.
+// It automatically detects terminal dimensions and initializes the pixel buffer.
+// If terminal size is below minimum requirements (130x33), it displays a warning
+// but continues execution for compatibility.
 func CreateUI() IUserInterface {
 	minWidth := 130
 	minHeight := 33
@@ -43,28 +52,40 @@ func CreateUI() IUserInterface {
 		absBorderRight:  0,
 		absBorderTop:    0,
 		absBorderBottom: 0,
+		msPerFrame:      320,
 	}
 	ui.initPixels(Height(), Width())
 
 	return ui
 }
 
-var msPerFrame int64 = 320
-var pixels = make([][]string, 0)
 
 func (ui *UserInterface) initPixels(height int, width int) error {
+	ui.pixelsMutex.Lock()
+	ui.dirtyMutex.Lock()
+	defer ui.pixelsMutex.Unlock()
+	defer ui.dirtyMutex.Unlock()
+	
+	ui.height = height
+	ui.width = width
 	// init pixels
-	pixels = make([][]string, height+1)
+	ui.pixels = make([][]string, height+1)
+	ui.dirtyRegions = make([][]bool, height+1)
 	for h := 0; h < height; h++ {
-		pixels[h] = make([]string, width+1)
+		ui.pixels[h] = make([]string, width+1)
+		ui.dirtyRegions[h] = make([]bool, width+1)
 		for w := 0; w < width; w++ {
-			pixels[h][w] = " "
+			ui.pixels[h][w] = " "
+			ui.dirtyRegions[h][w] = true // Initially mark all as dirty
 		}
 	}
 	return nil
 }
 
-// StartDrawLoop ...
+// StartDrawLoop initiates the main rendering loop in a separate goroutine.
+// percentHeight specifies how much of the terminal height to use (0-100).
+// Returns a channel to stop the loop and a WaitGroup to wait for cleanup.
+// The loop automatically adjusts frame rate based on dirty regions for optimal performance.
 func (ui *UserInterface) StartDrawLoop(percentHeight int) (chan int, *sync.WaitGroup) {
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -93,91 +114,129 @@ func (ui *UserInterface) drawLoop(height int, width int, ch chan int, wg *sync.W
 		default:
 			start = time.Now()
 
-			// lineBuffer = ""
-			oldbuff := screenBuffer
-			screenBuffer = ""
-			lastContentRow := height
-			for h := 0; h < height; h++ {
-				for w := 0; w < width; w++ {
-					lineBuffer += pixels[h][w]
+			// Check if any regions are dirty before rebuilding buffer
+			ui.dirtyMutex.RLock()
+			hasDirty := false
+			for h := 0; h < height && !hasDirty; h++ {
+				for w := 0; w < width && !hasDirty; w++ {
+					if ui.dirtyRegions[h][w] {
+						hasDirty = true
+					}
 				}
-				if strings.Count(lineBuffer, " ") == width {
-					screenBuffer += "\033[1B"
-				} else {
-					screenBuffer += lineBuffer
-					lastContentRow = h + 2
-				}
-				lineBuffer = ""
-
 			}
-			if oldbuff != screenBuffer {
-				ui.moveCursorTo(0, 0)
-				msPerFrame = 30
-				pl(screenBuffer)
-				ui.moveCursorTo(0, lastContentRow)
+			ui.dirtyMutex.RUnlock()
+			
+			if hasDirty {
+				oldbuff := screenBuffer
+				screenBuffer = ""
+				lastContentRow := height
+				ui.pixelsMutex.RLock()
+				for h := 0; h < height; h++ {
+					for w := 0; w < width; w++ {
+						lineBuffer += ui.pixels[h][w]
+					}
+					if strings.Count(lineBuffer, " ") == width {
+						screenBuffer += "\033[1B"
+					} else {
+						screenBuffer += lineBuffer
+						lastContentRow = h + 2
+					}
+					lineBuffer = ""
+				}
+				ui.pixelsMutex.RUnlock()
+				
+				if oldbuff != screenBuffer {
+					ui.moveCursorTo(0, 0)
+					ui.frameMutex.Lock()
+					ui.msPerFrame = 30
+					ui.frameMutex.Unlock()
+					pl(screenBuffer)
+					ui.moveCursorTo(0, lastContentRow)
+					ui.clearDirtyRegions()
+				}
+			} else {
+				// No dirty regions, use slower frame rate
+				ui.frameMutex.Lock()
+				ui.msPerFrame = 320
+				ui.frameMutex.Unlock()
 			}
 			took = time.Since(start)
-			time.Sleep(time.Duration(msPerFrame)*time.Millisecond - took)
+			ui.frameMutex.RLock()
+			frameRate := ui.msPerFrame
+			ui.frameMutex.RUnlock()
+			time.Sleep(time.Duration(frameRate)*time.Millisecond - took)
 		}
 	}
 }
 
-// SetBoarderLeft ...
-// Set a global boarder on left side of screen that forces
+// SetBorderLeft ...
+// Set a global border on left side of screen that forces
 // all elements to be printed outside it's boundaries
-func (ui *UserInterface) SetBoarderLeft(percent int) error {
+func (ui *UserInterface) SetBorderLeft(percent int) error {
+	if percent < 0 || percent > 50 {
+		return fmt.Errorf("border percent must be between 0 and 50, got %d", percent)
+	}
 	ui.absBorderLeft = Width() * percent / 100
 	return nil
 }
 
-// SetBoarderRight ...
-// Set a global boarder on right side of screen that forces
+// SetBorderRight ...
+// Set a global border on right side of screen that forces
 // all elements to be printed outside it's boundaries
-func (ui *UserInterface) SetBoarderRight(percent int) error {
+func (ui *UserInterface) SetBorderRight(percent int) error {
+	if percent < 0 || percent > 50 {
+		return fmt.Errorf("border percent must be between 0 and 50, got %d", percent)
+	}
 	ui.absBorderRight = Width() * percent / 100
 	return nil
 }
 
-// SetBoarderTop ...
-// Set a global boarder on top of screen that forces
+// SetBorderTop ...
+// Set a global border on top of screen that forces
 // all elements to be printed outside it's boundaries
-func (ui *UserInterface) SetBoarderTop(percent int) error {
+func (ui *UserInterface) SetBorderTop(percent int) error {
+	if percent < 0 || percent > 50 {
+		return fmt.Errorf("border percent must be between 0 and 50, got %d", percent)
+	}
 	ui.absBorderTop = Height() * percent / 100
 	return nil
 }
 
-// SetBoarderBottom ...
-// Set a global boarder on bottom of screen that forces
+// SetBorderBottom ...
+// Set a global border on bottom of screen that forces
 // all elements to be printed outside it's boundaries
-func (ui *UserInterface) SetBoarderBottom(percent int) error {
+func (ui *UserInterface) SetBorderBottom(percent int) error {
+	if percent < 0 || percent > 50 {
+		return fmt.Errorf("border percent must be between 0 and 50, got %d", percent)
+	}
 	ui.absBorderBottom = Height() * percent / 100
 	return nil
 }
 
-// SetBoarderSides ...
-// Set a global boarder on left and right side of screen that forces
+// SetBorderSides ...
+// Set a global border on left and right side of screen that forces
 // all elements to be printed outside it's boundaries
-func (ui *UserInterface) SetBoarderSides(percent int) error {
-	ui.SetBoarderLeft(percent)
-	ui.SetBoarderRight(percent)
+func (ui *UserInterface) SetBorderSides(percent int) error {
+	ui.SetBorderLeft(percent)
+	ui.SetBorderRight(percent)
 	return nil
 }
 
-// SetBoarderTopBottom ...
-// Set a global boarder on left and right side of screen that forces
+// SetBorderTopBottom ...
+// Set a global border on left and right side of screen that forces
 // all elements to be printed outside it's boundaries
-func (ui *UserInterface) SetBoarderTopBottom(percent int) error {
-	ui.SetBoarderTop(percent)
-	ui.SetBoarderBottom(percent)
+func (ui *UserInterface) SetBorderTopBottom(percent int) error {
+	ui.SetBorderTop(percent)
+	ui.SetBorderBottom(percent)
 	return nil
 }
 
-// SetBoarder ...
-// Set a global boarder on left and right side of screen that forces
+// SetBorder ...
+// Set a global border on left and right side of screen that forces
 // all elements to be printed outside it's boundaries
-func (ui *UserInterface) SetBoarder(percent int) error {
-	ui.SetBoarderSides(percent)
-	ui.SetBoarderTopBottom(percent)
+func (ui *UserInterface) SetBorder(percent int) error {
+	ui.SetBorderSides(percent)
+	ui.SetBorderTopBottom(percent)
 	return nil
 }
 
@@ -208,26 +267,41 @@ func (ui *UserInterface) DrawElementsHorizontal(pos IRelativePosition, texts []s
 	return y
 }
 
-// DrawElement ...
-// Render a text box at given coordinates
+// DrawElement renders text at the specified position with the given color.
+// Supports multi-line text and automatically handles line wrapping.
+// Returns the Y coordinate of the last rendered line.
 func (ui *UserInterface) DrawElement(pos IRelativePosition, text string, color int) int {
 	x, y := 0, 0
 	for k, line := range getLines(text, color == BLANK) {
 		for l, c := range line {
-			y = (ui.PercentToAbsoluteHeightInFrame(pos.GetY()) + pos.GetOffset() + ui.absBorderTop) % Height()
-			x = (ui.PercentToAbsoluteWidthInFrame(pos.GetX()) + l + ui.absBorderLeft) % Width()
+			y = (ui.PercentToAbsoluteHeightInFrame(pos.GetY()) + pos.GetOffset() + ui.absBorderTop) % ui.height
+			x = (ui.PercentToAbsoluteWidthInFrame(pos.GetX()) + l + ui.absBorderLeft) % ui.width
 
-			pixels[y][x] = Color(string(c), color+k)
+			ui.setPixel(x, y, Color(string(c), color+k))
 		}
 		pos.IncrementOffset()
 	}
 	return y - 1
 }
 
-// MoveElement ...
+// MoveElement animates text movement from startPos to endPos over the specified duration.
+// Supports gradient effects and various animation curves (EaseIn, EaseOut, etc.).
+// The animation blocks until completion.
 func (ui *UserInterface) MoveElement(startPos IRelativePosition, endPos IRelativePosition, text string, color int, animation Animation) error {
+	if startPos == nil || endPos == nil {
+		return fmt.Errorf("start and end positions cannot be nil")
+	}
+	if text == "" {
+		return fmt.Errorf("text cannot be empty")
+	}
+	if animation.Duration < 0 {
+		return fmt.Errorf("animation duration cannot be negative")
+	}
 
-	frames := int(animation.Duration / msPerFrame)
+	ui.frameMutex.RLock()
+	frameRate := ui.msPerFrame
+	ui.frameMutex.RUnlock()
+	frames := int(animation.Duration / frameRate)
 	// currentPos := CreatePos(startPos.GetX(), startPos.GetY())
 	// currentPos.ResetOffset()
 
@@ -245,13 +319,28 @@ func (ui *UserInterface) MoveElement(startPos IRelativePosition, endPos IRelativ
 			ui.DrawElement(startPos.AddDistance(distance.MultiplyWith(factor)), text, color)
 		}
 
-		time.Sleep(time.Duration(msPerFrame) * time.Millisecond)
+		ui.frameMutex.RLock()
+		frameRate := ui.msPerFrame
+		ui.frameMutex.RUnlock()
+		time.Sleep(time.Duration(frameRate) * time.Millisecond)
 	}
 	return nil
 }
 
-// DrawPattern ...
+// DrawPattern creates expanding patterns with animation support.
+// expansion controls how far the pattern extends (0-200 percent).
+// Supports directional expansion (Right, Left, Down, Up) and gradient effects.
+// Returns the Y coordinate of the last drawn element.
 func (ui *UserInterface) DrawPattern(startPos IRelativePosition, expansion int, text string, color int, animation Animation) int {
+	if startPos == nil {
+		return -1
+	}
+	if expansion < 0 || expansion > 200 {
+		return -1
+	}
+	if text == "" {
+		return -1
+	}
 
 	y := 0
 	startAbsWidth := ui.PercentToAbsoluteWidthInFrame(startPos.GetX()) + ui.absBorderLeft
@@ -266,11 +355,15 @@ func (ui *UserInterface) DrawPattern(startPos IRelativePosition, expansion int, 
 			expH := expander[0] * k
 			expW := expander[1] * k
 			line = string([]rune(line)[0])
+			yPos := (h + expH) % ui.height
+			xPos := (w + expW) % ui.width
+			var coloredLine string
 			if animation.GradientH {
-				pixels[(h+expH)%Height()][w+expW%Height()] = Color(line, (basecolor+(k*36))%255)
+				coloredLine = Color(line, (basecolor+(k*36))%255)
 			} else {
-				pixels[h+expH][w+expW] = Color(line, basecolor)
+				coloredLine = Color(line, basecolor)
 			}
+			ui.setPixel(xPos, yPos, coloredLine)
 			if h+expH > y {
 				y = h + expH
 			}
@@ -315,17 +408,26 @@ func (ui *UserInterface) DrawPattern(startPos IRelativePosition, expansion int, 
 	}
 
 	if animation.Duration > 0 {
-		frames := int(animation.Duration / msPerFrame)
+		ui.frameMutex.RLock()
+	frameRate := ui.msPerFrame
+	ui.frameMutex.RUnlock()
+	frames := int(animation.Duration / frameRate)
 		// animation
 		for i := 0; i <= frames; i++ {
 			factor := getAnimation(animation.AnimationType)(CB.Time(0), CB.Time(frames), CB.Time(i))
 			currentExpansionPercent := int(float32(expansion)*factor + 0.5)
 			switchDir(currentExpansionPercent)
-			time.Sleep(time.Duration(msPerFrame) * time.Millisecond)
+			ui.frameMutex.RLock()
+		frameRate := ui.msPerFrame
+		ui.frameMutex.RUnlock()
+		time.Sleep(time.Duration(frameRate) * time.Millisecond)
 		}
 	} else {
 		switchDir(expansion)
-		time.Sleep(time.Duration(msPerFrame) * time.Millisecond)
+		ui.frameMutex.RLock()
+		frameRate := ui.msPerFrame
+		ui.frameMutex.RUnlock()
+		time.Sleep(time.Duration(frameRate) * time.Millisecond)
 	}
 
 	// time.Sleep(time.Duration(msPerFrame) * time.Millisecond)
@@ -394,6 +496,33 @@ func (ui *UserInterface) ClearScreen() error {
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 	return nil
+}
+
+// setPixel safely sets a pixel and marks the region as dirty
+func (ui *UserInterface) setPixel(x, y int, value string) {
+	ui.pixelsMutex.Lock()
+	ui.dirtyMutex.Lock()
+	defer ui.pixelsMutex.Unlock()
+	defer ui.dirtyMutex.Unlock()
+	
+	if y >= 0 && y < len(ui.pixels) && x >= 0 && x < len(ui.pixels[y]) {
+		if ui.pixels[y][x] != value {
+			ui.pixels[y][x] = value
+			ui.dirtyRegions[y][x] = true
+		}
+	}
+}
+
+// clearDirtyRegions resets all dirty flags
+func (ui *UserInterface) clearDirtyRegions() {
+	ui.dirtyMutex.Lock()
+	defer ui.dirtyMutex.Unlock()
+	
+	for h := 0; h < ui.height; h++ {
+		for w := 0; w < ui.width; w++ {
+			ui.dirtyRegions[h][w] = false
+		}
+	}
 }
 
 func (ui *UserInterface) moveCursorTo(absX int, absY int) error {

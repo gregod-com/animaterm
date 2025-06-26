@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+
+    - name: Run tests
+      run: go test -v ./...
+
+    - name: Build binaries
+      run: |
+        cd example
+        
+        # Linux
+        GOOS=linux GOARCH=amd64 go build -o example-linux-amd64 example.go
+        GOOS=linux GOARCH=arm64 go build -o example-linux-arm64 example.go
+        
+        # macOS
+        GOOS=darwin GOARCH=amd64 go build -o example-darwin-amd64 example.go
+        GOOS=darwin GOARCH=arm64 go build -o example-darwin-arm64 example.go
+        
+        # Windows
+        GOOS=windows GOARCH=amd64 go build -o example-windows-amd64.exe example.go
+
+    - name: Create archive files
+      run: |
+        cd example
+        
+        # Create tar.gz for Unix systems
+        tar -czf example-linux-amd64.tar.gz example-linux-amd64
+        tar -czf example-linux-arm64.tar.gz example-linux-arm64
+        tar -czf example-darwin-amd64.tar.gz example-darwin-amd64
+        tar -czf example-darwin-arm64.tar.gz example-darwin-arm64
+        
+        # Create zip for Windows
+        zip example-windows-amd64.zip example-windows-amd64.exe
+
+    - name: Generate changelog
+      run: |
+        echo "## Changes" > CHANGELOG.md
+        git log --oneline --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")..HEAD >> CHANGELOG.md || echo "- Initial release" >> CHANGELOG.md
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          example/example-linux-amd64.tar.gz
+          example/example-linux-arm64.tar.gz
+          example/example-darwin-amd64.tar.gz
+          example/example-darwin-arm64.tar.gz
+          example/example-windows-amd64.zip
+        body_path: CHANGELOG.md
+        draft: false
+        prerelease: false
+        generate_release_notes: true
