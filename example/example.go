@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/common-nighthawk/go-figure"
+	figure "github.com/common-nighthawk/go-figure"
 	ui "github.com/gregod-com/animaterm"
 )
 

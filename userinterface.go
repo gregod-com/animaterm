@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	CB "golang.org/x/mobile/exp/sprite/clock"
+	"golang.org/x/mobile/exp/sprite/clock"
 )
 
 // UserInterface ...
@@ -309,7 +309,7 @@ func (ui *UserInterface) MoveElement(startPos IRelativePosition, endPos IRelativ
 	for i := 0; i <= frames; i++ {
 		// delete previous frame
 		ui.DrawElement(startPos.AddDistance(distance.MultiplyWith(factor)), text, BLANK)
-		factor = getAnimation(animation.AnimationType)(CB.Time(0), CB.Time(frames), CB.Time(i))
+		factor = getAnimation(animation.AnimationType)(clock.Time(0), clock.Time(frames), clock.Time(i))
 
 		if animation.GradientV || animation.GradientH {
 			ui.DrawElement(startPos.AddDistance(distance.MultiplyWith(factor)), text, color+36*int(float32(5)*factor))
@@ -399,7 +399,7 @@ func (ui *UserInterface) DrawPattern(startPos IRelativePosition, expansion int, 
 		}
 
 		for counter := 0; counter <= expAbs; counter++ {
-			factorColor := getAnimation(animation.AnimationType)(CB.Time(0), CB.Time(expAbs), CB.Time(counter))
+			factorColor := getAnimation(animation.AnimationType)(clock.Time(0), clock.Time(expAbs), clock.Time(counter))
 			drawPixel(startAbsHeight+expDir2[0]*counter, startAbsWidth+expDir2[1]*counter, factorColor, expDir1)
 		}
 
@@ -412,7 +412,7 @@ func (ui *UserInterface) DrawPattern(startPos IRelativePosition, expansion int, 
 		frames := int(animation.Duration / frameRate)
 		// animation
 		for i := 0; i <= frames; i++ {
-			factor := getAnimation(animation.AnimationType)(CB.Time(0), CB.Time(frames), CB.Time(i))
+			factor := getAnimation(animation.AnimationType)(clock.Time(0), clock.Time(frames), clock.Time(i))
 			currentExpansionPercent := int(float32(expansion)*factor + 0.5)
 			switchDir(currentExpansionPercent)
 			ui.frameMutex.RLock()

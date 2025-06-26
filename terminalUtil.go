@@ -5,8 +5,7 @@ import (
 	"math/rand"
 	"os"
 
-	CB "golang.org/x/mobile/exp/sprite/clock"
-
+	"golang.org/x/mobile/exp/sprite/clock"
 	"golang.org/x/sys/unix"
 )
 
@@ -48,20 +47,20 @@ const (
 	Ikea
 )
 
-func getAnimation(animationType AnimationType) func(t0, t1, t CB.Time) float32 {
+func getAnimation(animationType AnimationType) func(t0, t1, t clock.Time) float32 {
 	switch animationType {
 	case EaseIn:
-		return CB.CubicBezier(0.42, 0, 1, 1)
+		return clock.CubicBezier(0.42, 0, 1, 1)
 	case EaseOut:
-		return CB.CubicBezier(0, 0, 0.58, 1)
+		return clock.CubicBezier(0, 0, 0.58, 1)
 	case EaseInOut:
-		return CB.CubicBezier(0.42, 0, 0.58, 1)
+		return clock.CubicBezier(0.42, 0, 0.58, 1)
 	case Ikea:
-		return CB.CubicBezier(0.6, 1.2, 0.3, 0.9)
+		return clock.CubicBezier(0.6, 1.2, 0.3, 0.9)
 	case Custom:
-		return CB.CubicBezier(0, 1, 1, 0)
+		return clock.CubicBezier(0, 1, 1, 0)
 	default:
-		return CB.CubicBezier(0.6, 1.2, 0.3, 0.9)
+		return clock.CubicBezier(0.6, 1.2, 0.3, 0.9)
 	}
 }
 
